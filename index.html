@@ -11,6 +11,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#apply">skip to apply ↓</a>
@@ -48,18 +50,18 @@
         </div>
       </div>
 
-      <h1 class="h1">
+      <h1 class="h1" data-anim="headline">
         Most design internships <em>have you pushing pixels</em> and waiting for feedback.
         <span class="h1-accent">This one's different.</span>
       </h1>
 
-      <p class="lede">
+      <p class="lede" data-anim="fade-up">
         At AmberStudent, we're building the global platform students trust to find a home abroad — tools used by millions, decisions that affect real lives. We're hiring an <strong>AI Product Design Intern</strong> who doesn't think like a traditional designer.
       </p>
 
-      <div class="cta-row">
-        <a href="#apply" class="btn btn-primary">Apply via pull request →</a>
-        <a href="#role" class="btn btn-ghost">Read the role</a>
+      <div class="cta-row" data-anim="fade-up">
+        <a href="#apply" class="btn btn-primary" data-magnetic>Apply via pull request →</a>
+        <a href="#role" class="btn btn-ghost" data-magnetic>Read the role</a>
       </div>
     </section>
 
@@ -185,13 +187,34 @@
       </ol>
 
       <div class="apply-cta">
-        <a href="https://github.com/sudo-anmol/design-internship/fork" class="btn btn-primary big">Fork the repo →</a>
-        <a href="https://github.com/sudo-anmol/design-internship/blob/main/applications/TEMPLATE.md" class="btn btn-ghost big">View template</a>
+        <a href="https://github.com/sudo-anmol/design-internship/fork" class="btn btn-primary big" data-magnetic>Fork the repo →</a>
+        <a href="https://github.com/sudo-anmol/design-internship/blob/main/applications/TEMPLATE.md" class="btn btn-ghost big" data-magnetic>View template</a>
       </div>
 
       <p class="fine">
         New to GitHub? That's fine — <a href="https://github.com/sudo-anmol/design-internship#applying" class="inline-link">here's a 3-minute walkthrough</a>. The PR itself is part of what we're evaluating: how you approach a new system, how you write, how you think.
       </p>
+
+      <div class="or-divider" aria-hidden="true">
+        <span class="or-line"></span>
+        <span class="or-label">or, if GitHub isn't your thing</span>
+        <span class="or-line"></span>
+      </div>
+
+      <div class="email-apply">
+        <h3 class="email-apply-h">Apply via email</h3>
+        <p class="email-apply-p">
+          Send us your name, portfolio, LinkedIn, a recent project you've shipped, and why you want to join Amber. One email, five things — that's it.
+        </p>
+        <a
+          href="mailto:shashi.k@amberstudent.com?cc=careers@amberstudent.com&subject=Application%3A%20AI%20Product%20Design%20Intern&body=Hi%20team%2C%0A%0AI%27m%20applying%20for%20the%20AI%20Product%20Design%20Intern%20role%20at%20Amber.%0A%0A1.%20Name%3A%0A2.%20Portfolio%3A%0A3.%20LinkedIn%3A%0A4.%20A%20project%20I%27ve%20shipped%20recently%3A%0A%0A5.%20Why%20I%20want%20to%20join%20Amber%3A%0A%0A%E2%80%94"
+          class="btn btn-ghost big"
+          data-magnetic
+        >✉ Email your application →</a>
+        <p class="fine email-fine">
+          Clicking opens your mail app with a pre-filled template. You can edit anything before sending.
+        </p>
+      </div>
     </section>
 
     <section class="section faq">
@@ -231,7 +254,7 @@
   </footer>
 
   <script>
-    // progressive enhancement: highlight active section link
+    // active-nav highlight via IntersectionObserver
     const links = document.querySelectorAll('.nav-links a');
     const sections = [...document.querySelectorAll('section[id]')];
     const io = new IntersectionObserver((entries) => {
@@ -243,6 +266,189 @@
       });
     }, { rootMargin: '-40% 0px -55% 0px' });
     sections.forEach((s) => io.observe(s));
+
+    // GSAP animations — respects prefers-reduced-motion, gracefully no-ops if GSAP missed
+    // Safety: if GSAP fails to load within 1.5s, force-reveal all animated content
+    setTimeout(() => {
+      if (!window.gsap) document.body.classList.add('no-gsap');
+    }, 1500);
+
+    window.addEventListener('load', () => {
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced || !window.gsap) {
+        document.body.classList.add('no-gsap');
+        return;
+      }
+
+      gsap.registerPlugin(ScrollTrigger);
+      gsap.defaults({ ease: 'power3.out' });
+
+      // Hero headline — word-by-word reveal
+      const headline = document.querySelector('[data-anim="headline"]');
+      if (headline) {
+        const wrapWords = (el) => {
+          el.childNodes.forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              const frag = document.createDocumentFragment();
+              node.textContent.split(/(\s+)/).forEach((part) => {
+                if (/^\s+$/.test(part)) {
+                  frag.appendChild(document.createTextNode(part));
+                } else if (part.length) {
+                  const span = document.createElement('span');
+                  span.className = 'w';
+                  span.textContent = part;
+                  frag.appendChild(span);
+                }
+              });
+              node.parentNode.replaceChild(frag, node);
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+              wrapWords(node);
+            }
+          });
+        };
+        wrapWords(headline);
+        gsap.from(headline.querySelectorAll('.w'), {
+          yPercent: 110,
+          opacity: 0,
+          duration: 0.9,
+          stagger: 0.03,
+          delay: 0.1,
+        });
+      }
+
+      // Hero lede + CTA row
+      gsap.utils.toArray('.hero [data-anim="fade-up"]').forEach((el, i) => {
+        gsap.from(el, {
+          y: 24,
+          opacity: 0,
+          duration: 0.8,
+          delay: 0.6 + i * 0.1,
+        });
+      });
+
+      // Terminal: subtle rise + fade
+      gsap.from('.terminal', {
+        y: 30,
+        opacity: 0,
+        duration: 0.9,
+        delay: 0.05,
+      });
+
+      // Section heads reveal on scroll
+      gsap.utils.toArray('.section-head').forEach((el) => {
+        gsap.from(el, {
+          y: 28,
+          opacity: 0,
+          duration: 0.7,
+          scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' },
+        });
+      });
+
+      // Role list items
+      gsap.utils.toArray('.list li').forEach((el, i) => {
+        gsap.from(el, {
+          x: -20,
+          opacity: 0,
+          duration: 0.55,
+          delay: i * 0.06,
+          scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none none' },
+        });
+      });
+
+      // Cards (the 6 "what we're looking for" cards) — stagger on grid entry
+      const grid = document.querySelector('.grid');
+      if (grid) {
+        gsap.from(grid.children, {
+          y: 30,
+          opacity: 0,
+          duration: 0.6,
+          stagger: 0.08,
+          scrollTrigger: { trigger: grid, start: 'top 80%', toggleActions: 'play none none none' },
+        });
+      }
+
+      // "What you'll get" items
+      gsap.utils.toArray('.get-item').forEach((el, i) => {
+        gsap.from(el, {
+          y: 24,
+          opacity: 0,
+          duration: 0.6,
+          delay: (i % 2) * 0.08,
+          scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' },
+        });
+      });
+
+      // Fine-print rows cascade
+      gsap.utils.toArray('.kv > div').forEach((el, i) => {
+        gsap.from(el, {
+          x: -16,
+          opacity: 0,
+          duration: 0.5,
+          delay: i * 0.08,
+          scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none none' },
+        });
+      });
+
+      // Apply steps — pop in sequence
+      gsap.utils.toArray('.steps li').forEach((el, i) => {
+        gsap.from(el, {
+          y: 26,
+          opacity: 0,
+          scale: 0.98,
+          duration: 0.55,
+          delay: i * 0.1,
+          scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' },
+        });
+      });
+
+      // Email-apply block
+      gsap.from('.email-apply', {
+        y: 20,
+        opacity: 0,
+        duration: 0.7,
+        scrollTrigger: { trigger: '.or-divider', start: 'top 85%', toggleActions: 'play none none none' },
+      });
+      gsap.from('.or-divider .or-line', {
+        scaleX: 0,
+        duration: 0.9,
+        transformOrigin: 'center',
+        scrollTrigger: { trigger: '.or-divider', start: 'top 85%', toggleActions: 'play none none none' },
+      });
+
+      // FAQ reveal
+      gsap.utils.toArray('.faq details').forEach((el, i) => {
+        gsap.from(el, {
+          y: 16,
+          opacity: 0,
+          duration: 0.45,
+          delay: i * 0.06,
+          scrollTrigger: { trigger: el, start: 'top 92%', toggleActions: 'play none none none' },
+        });
+      });
+
+      // Magnetic buttons — subtle pull toward cursor
+      document.querySelectorAll('[data-magnetic]').forEach((btn) => {
+        const strength = 0.25;
+        btn.addEventListener('mousemove', (e) => {
+          const r = btn.getBoundingClientRect();
+          const x = (e.clientX - r.left - r.width / 2) * strength;
+          const y = (e.clientY - r.top - r.height / 2) * strength;
+          gsap.to(btn, { x, y, duration: 0.3, ease: 'power3.out' });
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, { x: 0, y: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)' });
+        });
+      });
+
+      // Nav shrink on scroll
+      ScrollTrigger.create({
+        start: 80,
+        end: 'max',
+        onUpdate: (self) => {
+          document.querySelector('.nav').classList.toggle('scrolled', self.progress > 0);
+        },
+      });
+    });
   </script>
 </body>
 </html>
