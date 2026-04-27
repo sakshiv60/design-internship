@@ -30,7 +30,7 @@ making decision points more guided instead of overwhelming
 
 The outcome was a more intuitive and confidence-driven flow, where users could move forward without second-guessing.
 
-This project helped me understand how small UX changes—especially in high-trust flows like payments can directly impact conversion and user confidence._
+This project helped me understand how small UX changes especially in high-trust flows like payments can directly impact conversion and user confidence._
 
 ## 5. Why you want to join Amber
 
